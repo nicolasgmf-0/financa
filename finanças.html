@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão Financeira — Escritório</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430;
+    --ink-soft:#3c4657;
+    --paper:#f6f4ee;
+    --paper-raised:#ffffff;
+    --line:#dcd6c8;
+    --brass:#a3812f;
+    --brass-soft:#c9a95c;
+    --entrada:#2f6d4f;
+    --entrada-bg:#e7f1eb;
+    --saida:#8c3a3a;
+    --saida-bg:#f5e9e7;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+  }
+
+  /* ---------- Header ---------- */
+  header.masthead{
+    border-bottom:1px solid var(--line);
+    background:var(--paper-raised);
+    padding:28px 32px 0 32px;
+  }
+  .masthead-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    max-width:1080px;
+    margin:0 auto;
+    flex-wrap:wrap;
+    gap:8px;
+    padding-bottom:18px;
+  }
+  .masthead-top h1{
+    font-size:1.6rem;
+    letter-spacing:0.2px;
+  }
+  .masthead-top .today{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  nav.tabs{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    gap:2px;
+  }
+  nav.tabs button{
+    font-family:'Fraunces', serif;
+    font-size:0.98rem;
+    background:transparent;
+    border:1px solid var(--line);
+    border-bottom:none;
+    padding:11px 22px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    border-top-left-radius:var(--radius);
+    border-top-right-radius:var(--radius);
+    transform:translateY(1px);
+    transition:background .15s ease, color .15s ease;
+  }
+  nav.tabs button:hover{ color:var(--ink); }
+  nav.tabs button.active{
+    background:var(--paper);
+    color:var(--ink);
+    border-color:var(--line);
+    border-bottom:1px solid var(--paper);
+    font-weight:600;
+  }
+
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:32px;
+  }
+  section.panel{ display:none; }
+  section.panel.active{ display:block; animation:fade .25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- Totals strip ---------- */
+  .totals{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:28px;
+  }
+  .total-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .total-card .label{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .total-card .value{
+    font-family:'Fraunces', serif;
+    font-size:1.5rem;
+    font-weight:600;
+  }
+  .total-card.entrada .value{ color:var(--entrada); }
+  .total-card.saida .value{ color:var(--saida); }
+  .total-card.saldo .value{ color:var(--ink); }
+
+  /* ---------- Form ---------- */
+  form.entry-form{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin-bottom:28px;
+  }
+  form.entry-form h3{
+    font-size:1.05rem;
+    margin-bottom:16px;
+    font-weight:500;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr 2fr 1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  .field label{
+    display:block;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--paper);
+    font-family:inherit;
+    font-size:0.92rem;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus{
+    outline:2px solid var(--brass-soft);
+    outline-offset:1px;
+  }
+  button.btn-add{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:var(--radius);
+    padding:10px 20px;
+    font-family:'Fraunces', serif;
+    font-size:0.92rem;
+    cursor:pointer;
+    height:fit-content;
+    transition:background .15s ease;
+  }
+  button.btn-add:hover{ background:var(--brass); }
+
+  /* ---------- Table ---------- */
+  table.ledger{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  table.ledger caption{
+    text-align:left;
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    padding:16px 20px 12px 20px;
+    font-weight:500;
+  }
+  table.ledger th{
+    text-align:left;
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    font-weight:600;
+    padding:9px 20px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  table.ledger td{
+    padding:11px 20px;
+    font-size:0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.ledger tbody tr:last-child td{ border-bottom:none; }
+  table.ledger tbody tr:hover{ background:#faf9f5; }
+  td.type-entrada{ color:var(--entrada); font-weight:600; }
+  td.type-saida{ color:var(--saida); font-weight:600; }
+  td.value-cell{ text-align:right; font-variant-numeric:tabular-nums; }
+  td.empty-row{ text-align:center; color:var(--ink-soft); font-style:italic; padding:26px; }
+
+  button.btn-del{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--saida);
+    border-radius:var(--radius);
+    padding:4px 10px;
+    font-size:0.78rem;
+    cursor:pointer;
+  }
+  button.btn-del:hover{ background:var(--saida-bg); }
+
+  /* ---------- Resumo ---------- */
+  .resumo-header{
+    text-align:center;
+    margin-bottom:26px;
+  }
+  .resumo-header h2{
+    font-size:1.5rem;
+    margin-bottom:6px;
+  }
+  .resumo-header p{
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    margin:0;
+  }
+  .resumo-metrics{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:36px;
+  }
+  .split-wrap{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:0;
+    align-items:stretch;
+    margin-bottom:32px;
+  }
+  .partner-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    padding:32px 28px;
+    text-align:center;
+  }
+  .partner-card:first-child{ border-radius:var(--radius) 0 0 var(--radius); }
+  .partner-card:last-child{ border-radius:0 var(--radius) var(--radius) 0; }
+  .partner-card .name{
+    font-family:'Fraunces', serif;
+    font-size:1.15rem;
+    margin-bottom:14px;
+    color:var(--ink-soft);
+  }
+  .partner-card .amount{
+    font-family:'Fraunces', serif;
+    font-size:2.1rem;
+    font-weight:600;
+    color:var(--brass);
+  }
+  .divider{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 22px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    font-family:'Fraunces', serif;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+  .formula-note{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.82rem;
+    font-style:italic;
+    margin-bottom:32px;
+  }
+  .breakdown-table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+  .breakdown-table caption{
+    text-align:left;
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    padding:16px 20px 12px 20px;
+    font-weight:500;
+  }
+  .breakdown-table th{
+    text-align:left;
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    padding:9px 20px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .breakdown-table td{
+    padding:10px 20px;
+    font-size:0.9rem;
+    border-bottom:1px solid var(--line);
+  }
+  .breakdown-table tr:last-child td{ border-bottom:none; }
+  .breakdown-table td.num{ text-align:right; font-variant-numeric:tabular-nums; }
+
+  footer{
+    text-align:center;
+    padding:26px;
+    color:var(--ink-soft);
+    font-size:0.78rem;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px){
+    header.masthead{ padding:20px 16px 0 16px; }
+    main{ padding:20px 16px; }
+    nav.tabs{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    nav.tabs button{ white-space:nowrap; padding:10px 14px; font-size:0.88rem; }
+    .totals{ grid-template-columns:1fr; }
+    .form-grid{ grid-template-columns:1fr 1fr; }
+    .form-grid .field:nth-child(3){ grid-column:1 / -1; }
+    button.btn-add{ grid-column:1 / -1; width:100%; }
+    table.ledger{ display:block; overflow-x:auto; }
+    .resumo-metrics{ grid-template-columns:1fr; }
+    .split-wrap{ grid-template-columns:1fr; }
+    .partner-card:first-child, .partner-card:last-child{ border-radius:var(--radius); }
+    .divider{ border:1px solid var(--line); padding:10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <h1>Livro de Contas do Escritório</h1>
+    <span class="today" id="todayLabel"></span>
+  </div>
+  <nav class="tabs" id="tabNav">
+    <button data-tab="aline" class="active">Aline</button>
+    <button data-tab="eveline">Eveline</button>
+    <button data-tab="banco">Banco</button>
+    <button data-tab="escritorio">Escritório</button>
+    <button data-tab="resumo">Resumo</button>
+  </nav>
+</header>
+
+<main id="mainArea"></main>
+
+<footer>Os dados ficam salvos apenas neste navegador.</footer>
+
+<script>
+/* ============ Modelo de dados ============ */
+const ABAS = [
+  { key:'aline', label:'Aline' },
+  { key:'eveline', label:'Eveline' },
+  { key:'banco', label:'Banco' },
+  { key:'escritorio', label:'Escritório' }
+];
+const STORAGE_KEY = 'gestaoFinanceiraEscritorio_v1';
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.warn('Falha ao ler localStorage', e); }
+  const empty = {};
+  ABAS.forEach(a => empty[a.key] = []);
+  return empty;
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let data = loadData();
+ABAS.forEach(a => { if(!Array.isArray(data[a.key])) data[a.key] = []; });
+
+let currentTab = 'aline';
+
+/* ============ Utilidades ============ */
+function formatBRL(v){
+  return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+function formatDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function totals(list){
+  let entradas = 0, saidas = 0;
+  list.forEach(l => {
+    if(l.type === 'entrada') entradas += l.value;
+    else saidas += l.value;
+  });
+  return { entradas, saidas, saldo: entradas - saidas };
+}
+function uid(){
+  return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+/* ============ Render ============ */
+const mainArea = document.getElementById('mainArea');
+
+function render(){
+  if(currentTab === 'resumo'){
+    mainArea.innerHTML = renderResumo();
+  } else {
+    mainArea.innerHTML = renderAba(currentTab);
+    attachFormHandler(currentTab);
+  }
+  attachDeleteHandlers();
+}
+
+function renderAba(key){
+  const meta = ABAS.find(a => a.key === key);
+  const list = data[key];
+  const t = totals(list);
+  const sorted = [...list].sort((a,b) => b.date.localeCompare(a.date));
+
+  const rows = sorted.length
+    ? sorted.map(l => `
+      <tr>
+        <td>${formatDate(l.date)}</td>
+        <td>${escapeHtml(l.desc) || '—'}</td>
+        <td class="type-${l.type}">${l.type === 'entrada' ? 'Entrada' : 'Saída'}</td>
+        <td class="value-cell">${formatBRL(l.value)}</td>
+        <td><button class="btn-del" data-id="${l.id}" data-aba="${key}">Excluir</button></td>
+      </tr>`).join('')
+    : `<tr><td class="empty-row" colspan="5">Nenhum lançamento registrado ainda.</td></tr>`;
+
+  return `
+    <section class="panel active">
+      <div class="totals">
+        <div class="total-card entrada">
+          <div class="label">Total de entradas</div>
+          <div class="value">${formatBRL(t.entradas)}</div>
+        </div>
+        <div class="total-card saida">
+          <div class="label">Total de saídas</div>
+          <div class="value">${formatBRL(t.saidas)}</div>
+        </div>
+        <div class="total-card saldo">
+          <div class="label">Saldo local</div>
+          <div class="value">${formatBRL(t.saldo)}</div>
+        </div>
+      </div>
+
+      <form class="entry-form" data-aba="${key}">
+        <h3>Novo lançamento — ${meta.label}</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="date-${key}">Data</label>
+            <input type="date" id="date-${key}" required>
+          </div>
+          <div class="field">
+            <label for="value-${key}">Valor (R$)</label>
+            <input type="number" id="value-${key}" step="0.01" min="0" placeholder="0,00" required>
+          </div>
+          <div class="field">
+            <label for="desc-${key}">Descrição</label>
+            <input type="text" id="desc-${key}" placeholder="Ex.: honorários, aluguel..." required>
+          </div>
+          <div class="field">
+            <label for="type-${key}">Tipo</label>
+            <select id="type-${key}">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-add">Adicionar</button>
+        </div>
+      </form>
+
+      <table class="ledger">
+        <caption>Histórico de lançamentos</caption>
+        <thead>
+          <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th style="text-align:right">Valor</th><th></th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </section>
+  `;
+}
+
+function renderResumo(){
+  const perAba = {};
+  ABAS.forEach(a => perAba[a.key] = totals(data[a.key]));
+
+  const totalEntradas = ABAS.reduce((s,a) => s + perAba[a.key].entradas, 0);
+  const totalSaidas = ABAS.reduce((s,a) => s + perAba[a.key].saidas, 0);
+  const liquido = totalEntradas - totalSaidas;
+  const porSocia = liquido / 2;
+
+  const breakdownRows = ABAS.map(a => `
+    <tr>
+      <td>${a.label}</td>
+      <td class="num">${formatBRL(perAba[a.key].entradas)}</td>
+      <td class="num">${formatBRL(perAba[a.key].saidas)}</td>
+      <td class="num">${formatBRL(perAba[a.key].saldo)}</td>
+    </tr>`).join('');
+
+  return `
+    <section class="panel active">
+      <div class="resumo-header">
+        <h2>Resumo &amp; Divisão das Sócias</h2>
+        <p>Panorama consolidado das quatro áreas — Aline, Eveline, Banco e Escritório.</p>
+      </div>
+
+      <div class="resumo-metrics">
+        <div class="total-card entrada">
+          <div class="label">Total geral de entradas</div>
+          <div class="value">${formatBRL(totalEntradas)}</div>
+        </div>
+        <div class="total-card saida">
+          <div class="label">Total geral de saídas</div>
+          <div class="value">${formatBRL(totalSaidas)}</div>
+        </div>
+        <div class="total-card saldo">
+          <div class="label">Lucro líquido geral</div>
+          <div class="value">${formatBRL(liquido)}</div>
+        </div>
+      </div>
+
+      <div class="split-wrap">
+        <div class="partner-card">
+          <div class="name">Dra. Aline recebe</div>
+          <div class="amount">${formatBRL(porSocia)}</div>
+        </div>
+        <div class="divider">=</div>
+        <div class="partner-card">
+          <div class="name">Dra. Eveline recebe</div>
+          <div class="amount">${formatBRL(porSocia)}</div>
+        </div>
+      </div>
+      <p class="formula-note">(Total geral de entradas − Total geral de saídas) ÷ 2 = ${formatBRL(porSocia)} para cada sócia</p>
+
+      <table class="breakdown-table">
+        <caption>Detalhamento por área</caption>
+        <thead>
+          <tr><th>Área</th><th style="text-align:right">Entradas</th><th style="text-align:right">Saídas</th><th style="text-align:right">Saldo</th></tr>
+        </thead>
+        <tbody>${breakdownRows}</tbody>
+      </table>
+    </section>
+  `;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ============ Eventos ============ */
+function attachFormHandler(key){
+  const form = mainArea.querySelector(`form[data-aba="${key}"]`);
+  if(!form) return;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const dateEl = document.getElementById(`date-${key}`);
+    const valueEl = document.getElementById(`value-${key}`);
+    const descEl = document.getElementById(`desc-${key}`);
+    const typeEl = document.getElementById(`type-${key}`);
+
+    const value = parseFloat(valueEl.value);
+    if(!dateEl.value || isNaN(value) || value <= 0 || !descEl.value.trim()){
+      return;
+    }
+
+    data[key].push({
+      id: uid(),
+      date: dateEl.value,
+      value: value,
+      desc: descEl.value.trim(),
+      type: typeEl.value
+    });
+    saveData();
+    render();
+  });
+}
+
+function attachDeleteHandlers(){
+  mainArea.querySelectorAll('.btn-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const aba = btn.dataset.aba;
+      const id = btn.dataset.id;
+      data[aba] = data[aba].filter(l => l.id !== id);
+      saveData();
+      render();
+    });
+  });
+}
+
+document.getElementById('tabNav').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  currentTab = btn.dataset.tab;
+  document.querySelectorAll('#tabNav button').forEach(b => b.classList.toggle('active', b === btn));
+  render();
+});
+
+document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('pt-BR', {
+  weekday:'long', day:'2-digit', month:'long', year:'numeric'
+});
+
+render();
+</script>
+</body>
+</html>
